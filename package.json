@@ -1,0 +1,39 @@
+{
+  "name": "novel-bits",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.0.0",
+    "@metamask/providers": "^10.2.1",
+    "@next/font": "13.1.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomiclabs/hardhat-waffle": "^2.0.5",
+    "@openzeppelin/contracts": "^4.8.2",
+    "antd": "^4.24.8",
+    "axios": "^1.3.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "ethers": "^5.7.2",
+    "express": "^4.18.2",
+    "mongoose": "^7.0.0",
+    "next": "13.1.2",
+    "react": "18.2.0",
+    "react-copy-to-clipboard": "^5.1.0",
+    "react-dom": "18.2.0",
+    "sass": "^1.57.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.0.28",
+    "eslint": "^8.35.0",
+    "eslint-plugin-react": "^7.32.2",
+    "hardhat": "^2.13.0",
+    "typescript": "4.9.5"
+  }
+}
