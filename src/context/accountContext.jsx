@@ -7,9 +7,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard"
 import { notification, message } from "antd"
 
 import {
-  AccountAction,
   AccountActionTypes,
-  AccountState,
   initialState,
   reducer,
 } from "../reducers/accountReducer"

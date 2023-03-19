@@ -1,17 +1,18 @@
 const initialState = {
-  account: null,
   isLoading: false,
-  isAppDisabled: true,
-  metamaskNotFound: false,
+  wallet: null,
+  client: {},
+  account: null,
 }
 
 export const AccountActionTypes = {
   SET_ACCOUNT: "SET_ACCOUNT",
-  SET_ISLOADING: "SET_ISLOADING",
-  SET_ACCOUNT_FAILURE: "SET_ACCOUNT_FAILURE",
-  SET_DISABLE_APP: "SET_DISABLE_APP",
-  SET_OPENSEA_LINK: "SET_OPENSEA_LINK",
-  SET_METAMASK_NOT_FOUND: "SET_METAMASK_NOT_FOUND",
+  SET_IS_ACCOUNT_LOADING: "SET_IS_ACCOUNT_LOADING",
+  SET_ACCOUNT_NFTS: "SET_ACCOUNT_NFTS",
+  SET_WALLET: "SET_WALLET",
+  SET_CLIENT: "SET_CLIENT",
+  UPDATE_NFTS: "UPDATE_NFTS",
+  UPDATE_BALANCE: "UPDATE_BALANCE",
 }
 
 const reducer = (state, action) => {
@@ -21,27 +22,42 @@ const reducer = (state, action) => {
         ...state,
         account: action.payload,
       }
-    case AccountActionTypes.SET_ACCOUNT_FAILURE:
-      return {
-        ...state,
-        account: null,
-      }
-    case AccountActionTypes.SET_ISLOADING:
+    case AccountActionTypes.SET_IS_ACCOUNT_LOADING:
       return {
         ...state,
         isLoading: action.payload,
       }
-    case AccountActionTypes.SET_DISABLE_APP:
+    case AccountActionTypes.SET_ACCOUNT_NFTS:
       return {
         ...state,
-        isAppDisabled: action.payload,
+        nfts: action.payload,
       }
-    case AccountActionTypes.SET_METAMASK_NOT_FOUND:
+    case AccountActionTypes.SET_WALLET:
       return {
         ...state,
-        metamaskNotFound: action.payload,
+        wallet: action.payload,
       }
-
+    case AccountActionTypes.SET_CLIENT:
+      return {
+        ...state,
+        client: action.payload,
+      }
+    case AccountActionTypes.UPDATE_NFTS:
+      return {
+        ...state,
+        account: {
+          ...state.account,
+          nfts: action.payload.newNfts,
+        },
+      }
+    case AccountActionTypes.UPDATE_BALANCE:
+      return {
+        ...state,
+        account: {
+          ...state.account,
+          balance: action.payload.newBalance,
+        },
+      }
     default:
       return state
   }
