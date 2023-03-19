@@ -10,16 +10,17 @@ import {
   AccountActionTypes,
   initialState,
   reducer,
-} from "../reducers/accountReducer"
+} from "../reducer/accountReducer"
 
-import xrpl from "xrpl"
+// eslint-disable-next-line no-undef
+const xrpl = require("xrpl")
 
 const AccountContext = createContext(null)
 
 const AccountContextProvider = (props) => {
   const [accountState, accountDispatch] = useReducer(reducer, initialState)
   return (
-    <AccountContext.Provider value={[accountState, accountDispatch]}>
+    <AccountContext.Provider value={{ accountState, accountDispatch }}>
       {props.children}
     </AccountContext.Provider>
   )
@@ -191,7 +192,6 @@ const getLastMintedNft = async (address) => {
 }
 
 const getSellOffers = async (tokenId) => {
-  // setIsLoading(true);
   const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233")
   await client.connect()
   console.log(tokenId)
