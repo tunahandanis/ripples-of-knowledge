@@ -35,8 +35,9 @@ const Home = () => {
             <Link href="/explore">
               <button
                 className={`hero__button hero__button-explore ${
-                  !accountState.account && "hero__button-disabled"
+                  !accountState?.account && "hero__button-disabled"
                 }`}
+                disabled={!accountState.account}
               >
                 Explore
               </button>
@@ -44,8 +45,9 @@ const Home = () => {
             <Link href={`/user/${accountState?.account?.address}`}>
               <button
                 className={`hero__button hero__button-write ${
-                  !accountState.account && "hero__button-disabled"
+                  !accountState?.account && "hero__button-disabled"
                 }`}
+                disabled={!accountState.account}
               >
                 Write
               </button>

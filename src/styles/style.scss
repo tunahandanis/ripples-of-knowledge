@@ -1,5 +1,5 @@
+@import "/src/styles/colors.scss";
 @import "~antd/dist/antd.css";
-$primary-color: #3fa9ff;
 
 * {
   box-sizing: border-box;
@@ -244,6 +244,55 @@ ANT DESIGN
   background-color: #fff !important;
   width: 18px !important;
   height: 18px !important;
+}
+
+.ant-result {
+  margin-top: 4em !important;
+}
+
+.ant-result-title {
+  color: $secondary-color !important;
+  font-size: 1.8rem !important;
+  font-weight: 300;
+}
+
+.ant-result-subtitle {
+  color: $secondary-color !important;
+  font-size: 1.2rem !important;
+  font-weight: 300;
+}
+
+.ant-result-extra {
+  display: flex !important;
+  justify-content: center;
+  margin-top: 2em !important;
+
+  button {
+    padding: 1.2em 0.7em !important;
+    cursor: pointer;
+    border: 2px solid $secondary-color;
+    background-color: transparent !important;
+    transition: all 0.3s ease !important;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    a {
+      color: $secondary-color !important;
+      font-size: 1.1rem !important;
+
+      transition: all 0.3s ease !important;
+
+      &:hover {
+        color: #fff !important;
+      }
+    }
+
+    &:hover {
+      background-color: $secondary-color !important;
+    }
+  }
 }
 
 /*

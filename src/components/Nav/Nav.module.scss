@@ -53,6 +53,9 @@
     background-color: $secondary-color !important;
     color: #fff !important;
   }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modalButtonContainer {

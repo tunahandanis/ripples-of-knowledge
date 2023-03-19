@@ -1,0 +1,24 @@
+@import "../../styles//colors.scss";
+
+.profile {
+  &Card {
+    width: 550px;
+    height: 400px;
+    background-color: lighten($primary-color, 10%);
+    border-radius: 20px;
+    margin: 10em auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+
+  &InfoField {
+    margin: 1.25em;
+    color: #fff !important;
+    font-size: 1.15rem;
+
+    span {
+      color: $secondary-color;
+    }
+  }
+}

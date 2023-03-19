@@ -48,11 +48,7 @@ const Nav = () => {
                   <Space className={styles.navChild}>Explore</Space>
                 </li>
               </Link>
-              <Link href="/create">
-                <li>
-                  <Space className={styles.navChild}>Create</Space>
-                </li>
-              </Link>
+
               <li>
                 {accountState?.account?.address ? (
                   <Dropdown
