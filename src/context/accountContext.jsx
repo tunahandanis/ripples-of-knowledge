@@ -129,7 +129,7 @@ async function connectWallet(dispatch, importedSeed) {
       }
     }
 
-    client.disconnect()
+    //client.disconnect()
   } catch (error) {
     console.log(error)
   }

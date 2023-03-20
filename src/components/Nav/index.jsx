@@ -58,7 +58,7 @@ const Nav = () => {
                           <Menu.Item>Profile</Menu.Item>
                         </Link>
                         <Link
-                          href={`/user-nfts/${accountState.account.address}`}
+                          href={`/my-books/${accountState.account.address}`}
                         >
                           <Menu.Item>My NFTs</Menu.Item>
                         </Link>

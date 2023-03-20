@@ -1,13 +1,17 @@
-import { useAccountContext } from "@/context/accountContext"
+import {
+  useAccountContext,
+  updateBalance,
+  updateNFTs,
+} from "@/context/accountContext"
 import { Button, Input, Modal, notification, Spin, Table } from "antd"
 import { useEffect, useState } from "react"
 import { getBooksTableColumns } from "@/utils/helpers"
-import BookNFT from "../../../artifacts/contracts/BookNFT.sol/BookNFT.json"
-import { bookNftContractAddress } from "@/utils/constants"
 
 import { uploadJSONToIPFS, getNFTMetadata } from "@/utils/pinata"
 import { CheckOutlined } from "@ant-design/icons"
-import { ethers } from "ethers"
+
+// eslint-disable-next-line no-undef
+const xrpl = require("xrpl")
 
 const User = () => {
   const [books, setBooks] = useState()
@@ -16,8 +20,7 @@ const User = () => {
   const [priceInput, setPriceInput] = useState("")
   const [isMinting, setIsMinting] = useState(false)
 
-  const { accountState, checkIfWalletIsConnected, accountDispatch } =
-    useAccountContext()
+  const { accountState, accountDispatch } = useAccountContext()
 
   const hideModal = () => {
     setIsNewBookModalOpen(false)
@@ -28,7 +31,6 @@ const User = () => {
   }
 
   const mintBookNft = async () => {
-    checkIfWalletIsConnected(accountDispatch)
     setIsMinting(true)
 
     const newBook = {
@@ -40,90 +42,72 @@ const User = () => {
       rating: 0,
     }
 
-    if (typeof window.ethereum !== "undefined") {
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const signer = provider.getSigner()
+    try {
+      const pinataResponse = await uploadJSONToIPFS(newBook)
 
-      const contract = new ethers.Contract(
-        bookNftContractAddress,
-        BookNFT.abi,
-        signer
-      )
-
-      try {
-        const pinataResponse = await uploadJSONToIPFS(newBook)
-
-        const transaction = await contract.mintBookNFT(
-          accountState.account.address,
-          pinataResponse.ipfsHash
-        )
-
-        const res = await transaction.wait()
-
-        const btn = (
-          <a
-            href={
-              "https://arctic.epirus.io/transactions/" + res.transactionHash
-            }
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span style={{ color: "#40a9ff", cursor: "pointer" }}>
-              {res.transactionHash.slice(0, 30) + "..."}
-            </span>
-          </a>
-        )
-        notification.open({
-          message: `You just minted a new book as NFT!`,
-          description: "Click to view transaction on Epirus",
-          btn,
-          placement: "bottomRight",
-
-          duration: 5,
-          icon: <CheckOutlined style={{ color: "#108ee9" }} />,
-        })
-        handleMintDone()
-      } catch (error) {
-        console.error(error)
+      const mintTransactionBlob = {
+        TransactionType: "NFTokenMint",
+        Account: accountState.wallet?.classicAddress,
+        URI: xrpl.convertStringToHex(pinataResponse.ipfsHash),
+        Flags: 8,
+        TransferFee: 0,
+        NFTokenTaxon: 0,
       }
-    }
 
-    setBookNameInput("")
-    setPriceInput("")
-    setIsNewBookModalOpen(false)
+      await accountState.wallet?.sign(mintTransactionBlob)
+      const tx = await accountState.client.submitAndWait(mintTransactionBlob, {
+        wallet: accountState?.wallet,
+      })
+
+      const btn = (
+        <a
+          href={"https://blockexplorer.one/xrp/testnet/tx/" + tx.result.hash}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span style={{ color: "#40a9ff", cursor: "pointer" }}>
+            {tx.result.hash.slice(0, 30) + "..."}
+          </span>
+        </a>
+      )
+      notification.open({
+        message: `Your NFT has been minted`,
+        description: "Click to view on explorer:",
+        btn,
+        placement: "bottomRight",
+
+        duration: 5,
+        icon: <CheckOutlined style={{ color: "#108ee9" }} />,
+      })
+
+      updateNFTs(accountDispatch, accountState.account.address)
+      updateBalance(accountDispatch, accountState.account.address)
+    } catch (error) {
+      console.error(error)
+    }
+    handleMintDone()
   }
 
   const handleMintDone = () => {
-    setTimeout(() => {
-      fetchBooks()
-    }, 1000)
     hideModal()
     setBookNameInput("")
+    setIsNewBookModalOpen(false)
     setPriceInput("")
     setIsMinting(false)
   }
 
   const fetchBooks = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-
-    const contract = new ethers.Contract(
-      bookNftContractAddress,
-      BookNFT.abi,
-      provider
-    )
-
     try {
-      const bookURIs = await contract.getAuthorBookURIs(
-        accountState?.account?.address
+      const bookURIs = accountState?.account?.nfts?.map((nft) =>
+        xrpl.convertHexToString(nft.URI)
       )
+
       const promises = bookURIs.map((uri) => {
         const promise = getNFTMetadata(uri)
         return promise
       })
 
       const books = await Promise.all(promises)
-
-      console.log(books)
 
       setBooks(books)
     } catch (error) {
@@ -132,7 +116,9 @@ const User = () => {
   }
 
   useEffect(() => {
-    fetchBooks()
+    if (accountState?.account?.nfts) {
+      fetchBooks()
+    }
   }, [])
 
   if (!books) {
