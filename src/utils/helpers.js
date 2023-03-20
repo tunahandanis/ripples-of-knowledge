@@ -71,7 +71,7 @@ export const getBooksTableColumns = (isAuthor) => {
       render: (row) => (
         <Link
           href={{
-            pathname: `/${isAuthor ? "my-books" : "book"}/[bookInfo]`,
+            pathname: `/${isAuthor ? "my-book" : "book"}/[bookInfo]`,
             query: {
               bookInfo: `${row?.authorWalletAddress},${row?.bookName}`,
             },

@@ -1,25 +1,27 @@
-import { useAccountContext } from "@/context/accountContext"
+import {
+  updateBalance,
+  updateNFTs,
+  useAccountContext,
+} from "@/context/accountContext"
 import { getNFTMetadata, uploadJSONToIPFS } from "@/utils/pinata"
 import { Button, Collapse, Input, Modal, notification, Spin } from "antd"
-import { ethers } from "ethers"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
-import BookNFT from "../../../artifacts/contracts/BookNFT.sol/BookNFT.json"
-import { bookNftContractAddress } from "@/utils/constants"
 import { CheckOutlined } from "@ant-design/icons"
+
+// eslint-disable-next-line no-undef
+const xrpl = require("xrpl")
 
 const MyBook = () => {
   const router = useRouter()
   const [book, setBook] = useState()
-  const [authorBooks, setAuthorBooks] = useState()
-  const [authorBookURIs, setAuthorBookURIs] = useState()
   const [isLoading, setIsLoading] = useState(false)
 
   const [isNewChapterModalOpen, setIsNewChapterModalOpen] = useState(false)
   const [chapterNameInput, setChapterNameInput] = useState("")
   const [contentInput, setContentInput] = useState("")
 
-  const { checkIfWalletIsConnected, accountDispatch } = useAccountContext()
+  const { accountDispatch, accountState } = useAccountContext()
 
   const hideModal = () => {
     setIsNewChapterModalOpen(false)
@@ -30,25 +32,16 @@ const MyBook = () => {
   }
 
   useEffect(() => {
-    const bookInfo = router.query.bookInfo
-    const splitInfo = bookInfo.split(",")
-    const author = splitInfo[0]
-    const bookName = splitInfo[1]
+    const bookName = router.query.bookInfo.split(",")[1]
 
-    fetchBook({ author, bookName })
+    fetchBook(bookName)
   }, [])
 
-  const fetchBook = async ({ author, bookName }) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-
-    const contract = new ethers.Contract(
-      bookNftContractAddress,
-      BookNFT.abi,
-      provider
-    )
-
+  const fetchBook = async (bookName) => {
     try {
-      const bookURIs = await contract.getAuthorBookURIs(author)
+      const bookURIs = accountState?.account?.nfts.map((nft) =>
+        xrpl.convertHexToString(nft.URI)
+      )
 
       const promises = []
 
@@ -59,8 +52,6 @@ const MyBook = () => {
       const books = await Promise.all(promises)
       const book = books.find((book) => book.bookName === bookName)
 
-      setAuthorBookURIs(bookURIs)
-      setAuthorBooks(books)
       setBook(book)
     } catch (error) {
       console.error(error)
@@ -68,32 +59,36 @@ const MyBook = () => {
   }
 
   const insertChapter = async () => {
-    checkIfWalletIsConnected(accountDispatch)
     setIsLoading(true)
+
+    const bookURIs = accountState?.account?.nfts.map((nft) =>
+      xrpl.convertHexToString(nft.URI)
+    )
+
+    const promises = []
+
+    for (let uri of bookURIs) {
+      promises.push(getNFTMetadata(uri))
+    }
 
     const bookInfo = router.query.bookInfo
     const splitInfo = bookInfo.split(",")
-    const author = splitInfo[0]
     const bookName = splitInfo[1]
 
-    const bookIndex = authorBooks.findIndex(
-      (book) => book.bookName === bookName
-    )
-    const oldBookURI = authorBookURIs[bookIndex]
+    const books = await Promise.all(promises)
+    const bookIndex = books.findIndex((book) => book.bookName === bookName)
+    const tokenId = accountState?.account?.nfts[bookIndex].NFTokenID
 
     const newChapter = {
       chapterName: chapterNameInput,
       content: contentInput,
     }
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
-
-    const contract = new ethers.Contract(
-      bookNftContractAddress,
-      BookNFT.abi,
-      signer
-    )
+    const burnTransactionBlob = {
+      TransactionType: "NFTokenBurn",
+      Account: accountState?.account?.address,
+      NFTokenID: tokenId,
+    }
 
     const updatedBookData = {
       ...book,
@@ -105,28 +100,41 @@ const MyBook = () => {
     }
 
     try {
+      await accountState.wallet?.sign(burnTransactionBlob)
+
+      await accountState.client.submitAndWait(burnTransactionBlob, {
+        wallet: accountState?.wallet,
+      })
+
       const pinataResponse = await uploadJSONToIPFS(updatedBookData)
-      const transaction = await contract.updateBookURI(
-        author,
-        oldBookURI,
-        pinataResponse.ipfsHash
-      )
-      const res = await transaction.wait()
+      const mintTransactionBlob = {
+        TransactionType: "NFTokenMint",
+        Account: accountState.wallet?.classicAddress,
+        URI: xrpl.convertStringToHex(pinataResponse.ipfsHash),
+        Flags: 8,
+        TransferFee: 0,
+        NFTokenTaxon: 0,
+      }
+
+      await accountState.wallet?.sign(mintTransactionBlob)
+      const tx = await accountState.client.submitAndWait(mintTransactionBlob, {
+        wallet: accountState?.wallet,
+      })
 
       const btn = (
         <a
-          href={"https://arctic.epirus.io/transactions/" + res.transactionHash}
+          href={"https://blockexplorer.one/xrp/testnet/tx/" + tx.result.hash}
           target="_blank"
           rel="noreferrer"
         >
           <span style={{ color: "#40a9ff", cursor: "pointer" }}>
-            {res.transactionHash.slice(0, 30) + "..."}
+            {tx.result.hash.slice(0, 30) + "..."}
           </span>
         </a>
       )
       notification.open({
-        message: `You just added a new chapter!!`,
-        description: "Click to view transaction on Epirus",
+        message: `Your NFT has been minted`,
+        description: "Click to view on explorer:",
         btn,
         placement: "bottomRight",
 
@@ -134,9 +142,9 @@ const MyBook = () => {
         icon: <CheckOutlined style={{ color: "#108ee9" }} />,
       })
 
-      setTimeout(() => {
-        fetchBook({ author, bookName })
-      }, 1000)
+      updateNFTs(accountDispatch, accountState.account.address)
+      updateBalance(accountDispatch, accountState.account.address)
+      fetchBook(bookName)
     } catch (e) {
       console.error(e)
     }

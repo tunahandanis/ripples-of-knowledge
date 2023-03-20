@@ -49,7 +49,7 @@ const User = () => {
         TransactionType: "NFTokenMint",
         Account: accountState.wallet?.classicAddress,
         URI: xrpl.convertStringToHex(pinataResponse.ipfsHash),
-        Flags: 8,
+        Flags: 1,
         TransferFee: 0,
         NFTokenTaxon: 0,
       }
