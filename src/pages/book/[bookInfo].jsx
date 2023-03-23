@@ -317,7 +317,7 @@ const Book = () => {
                 Buy
               </Button>
             </Tooltip>
-            <h4>{`${book.premiumPrice} ICZ`}</h4>
+            <h4>{`${book.premiumPrice} XRP`}</h4>
           </div>
         )}
         {!isReaderTheAuthor &&

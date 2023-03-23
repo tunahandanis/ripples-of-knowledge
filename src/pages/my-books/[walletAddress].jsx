@@ -183,7 +183,7 @@ const User = () => {
           size="middle"
         />
         <Input
-          placeholder="Price for unlocking chapters in ICZ"
+          placeholder="Price for unlocking chapters in XRP"
           onChange={(e) => {
             if (Number(e.target.value)) {
               setPriceInput(e.target.value)
