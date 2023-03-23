@@ -35,7 +35,7 @@ const MyBook = () => {
     const bookName = router.query.bookInfo.split(",")[1]
 
     fetchBook(bookName)
-  }, [])
+  }, [accountState?.account?.nfts])
 
   const fetchBook = async (bookName) => {
     try {
@@ -142,9 +142,8 @@ const MyBook = () => {
         icon: <CheckOutlined style={{ color: "#108ee9" }} />,
       })
 
-      updateNFTs(accountDispatch, accountState.account.address)
-      updateBalance(accountDispatch, accountState.account.address)
-      fetchBook(bookName)
+      await updateNFTs(accountDispatch, accountState.account.address)
+      await updateBalance(accountDispatch, accountState.account.address)
     } catch (e) {
       console.error(e)
     }

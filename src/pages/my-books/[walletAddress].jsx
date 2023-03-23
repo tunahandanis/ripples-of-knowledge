@@ -80,8 +80,9 @@ const User = () => {
         icon: <CheckOutlined style={{ color: "#108ee9" }} />,
       })
 
-      updateNFTs(accountDispatch, accountState.account.address)
-      updateBalance(accountDispatch, accountState.account.address)
+      await updateNFTs(accountDispatch, accountState.account.address)
+      await updateBalance(accountDispatch, accountState.account.address)
+      await fetchBooks()
     } catch (error) {
       console.error(error)
     }
@@ -119,7 +120,7 @@ const User = () => {
     if (accountState?.account?.nfts) {
       fetchBooks()
     }
-  }, [])
+  }, [accountState?.account.nfts])
 
   if (!books) {
     return (
