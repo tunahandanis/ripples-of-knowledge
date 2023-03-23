@@ -71,7 +71,7 @@ const User = () => {
         </a>
       )
       notification.open({
-        message: `Your NFT has been minted`,
+        message: `Your minted a new book as NFT!`,
         description: "Click to view on explorer:",
         btn,
         placement: "bottomRight",
@@ -82,7 +82,6 @@ const User = () => {
 
       await updateNFTs(accountDispatch, accountState.account.address)
       await updateBalance(accountDispatch, accountState.account.address)
-      await fetchBooks()
     } catch (error) {
       console.error(error)
     }

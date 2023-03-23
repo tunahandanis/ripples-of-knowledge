@@ -133,7 +133,7 @@ const MyBook = () => {
         </a>
       )
       notification.open({
-        message: `Your NFT has been minted`,
+        message: `You just added a new chapter!`,
         description: "Click to view on explorer:",
         btn,
         placement: "bottomRight",

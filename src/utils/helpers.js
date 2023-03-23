@@ -14,7 +14,7 @@ export const getBooksTableColumns = (isAuthor) => {
       title: () => <strong>Price</strong>,
       key: "price",
       dataIndex: "premiumPrice",
-      render: (price) => `${price} ICZ`,
+      render: (price) => `${price} XRP`,
     },
     Chapters: {
       title: () => <strong>Chapters</strong>,
