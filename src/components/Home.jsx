@@ -21,8 +21,8 @@ const Home = () => {
             Read, write and support thrilling books
           </Title>
           <p className="hero__para">
-            Ripples of Knowledge is a decentralized novel-protocol that lets
-            people read, write and support books
+            Ripples of Knowledge is a blockchain solution for web novels,
+            powered by XRP
           </p>
           <div className="hero__button-container">
             <Link href="/explore">
