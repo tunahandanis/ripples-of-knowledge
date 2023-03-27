@@ -200,6 +200,9 @@ ANT DESIGN
 }
 
 .ant-avatar {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
   img {
     height: 30px;
     object-fit: cover;
@@ -243,9 +246,10 @@ ANT DESIGN
   }
 }
 
-.ant-btn-default {
+.ant-btn {
   &:hover,
-  &:active {
+  &:active,
+  &:focus {
     border-color: darken($secondary-color, 10%) !important;
     color: darken($secondary-color, 10%) !important;
   }
