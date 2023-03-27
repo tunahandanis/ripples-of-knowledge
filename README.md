@@ -56,6 +56,6 @@ A lot of stuff on blockchain development!
 
 ## What's next for Ripples of Knowledge
 
-- Implementing IPNS to get rid of unnecessary gas fees
+- Implementing IPNS to get rid of the unnecessary gas fees associated with burning and re-minting book NFTs
 - More flexible configurations, such as free chapter count
 - Option to buy a specific amount of chapters instead of the whole book for much smaller price
