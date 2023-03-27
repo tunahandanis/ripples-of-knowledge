@@ -5,6 +5,7 @@ import TextArea from "antd/lib/input/TextArea"
 import { useState } from "react"
 import styles from "./Nav.module.scss"
 import { UserOutlined } from "@ant-design/icons"
+import Head from "next/head"
 
 const Nav = () => {
   const { accountState, accountDispatch } = useAccountContext()
@@ -29,6 +30,12 @@ const Nav = () => {
 
   return (
     <div className={styles.header}>
+      <Head>
+        <title>Ripples of Knowledge | Decentralized Novel Platform</title>
+        <meta name="description" content="Iconic Novels Landing Page" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <PageHeader
         ghost={false}
         avatar={{

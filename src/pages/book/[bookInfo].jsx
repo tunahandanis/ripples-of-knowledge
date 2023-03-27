@@ -7,14 +7,7 @@ import { Button, Collapse, notification, Spin, Tooltip, Rate } from "antd"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { CheckOutlined, LockOutlined } from "@ant-design/icons"
-import { ethers } from "ethers"
-import BookAccessNFT from "../../../artifacts/contracts/BookAccessNFT.sol/BookAccessNFT.json"
-import {
-  bookAccessNftContractAddress,
-  bookNftContractAddress,
-} from "@/utils/constants"
 import { getNFTMetadata, uploadJSONToIPFS } from "@/utils/pinata"
-import BookNFT from "../../../artifacts/contracts/BookNFT.sol/BookNFT.json"
 import axios from "axios"
 
 // eslint-disable-next-line no-undef
