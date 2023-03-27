@@ -22,6 +22,8 @@ npm run dev
 
 Check out [http://localhost:3000](http://localhost:3000) on the browser and you're good to go!
 
+---
+
 ## Inspiration
 
 Companies such as Webnovel and Royal Road provide an environment for authors to share their work and gain some support while providing its users access to many good web novels. However, they are highly centralized; and in many cases, provide unfair circumstances for its authors. Plagiarism is also abundant in the industry due to the nature of the work. So I developed the "Ripples of Knowledge" to address these issues, using the power of the XRP Ledger.
