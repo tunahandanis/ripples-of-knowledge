@@ -15,6 +15,7 @@ import {
 } from "@/utils/constants"
 import { getNFTMetadata, uploadJSONToIPFS } from "@/utils/pinata"
 import BookNFT from "../../../artifacts/contracts/BookNFT.sol/BookNFT.json"
+import axios from "axios"
 
 // eslint-disable-next-line no-undef
 const xrpl = require("xrpl")
@@ -25,6 +26,7 @@ const Book = () => {
   const [hasAccess, setHasAccess] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
   const [isReviewing, setIsReviewing] = useState(false)
+  const [hasReviewed, setHasReviewed] = useState(false)
 
   const { accountState, accountDispatch } = useAccountContext()
 
@@ -46,12 +48,38 @@ const Book = () => {
       const nfts = await Promise.all(promises)
       const accessNft = nfts.find((nft) => nft.isAccessNft)
 
-      console.log(nfts)
-
       setHasAccess(accessNft.accessData.includes(book.bookId))
     } catch (error) {
       console.error(error)
     }
+  }
+
+  const giveReview = async (rating) => {
+    setIsReviewing(true)
+
+    const newReview = {
+      rating,
+      bookId: book.bookId,
+    }
+
+    try {
+      await axios
+        .post("/api/createReview", newReview)
+        .then(() => setHasReviewed(true))
+    } catch (e) {
+      console.error(e.response.data)
+    }
+
+    notification.open({
+      message: `You added a new review!`,
+
+      placement: "bottomRight",
+
+      duration: 5,
+      icon: <CheckOutlined style={{ color: "#108ee9" }} />,
+    })
+
+    setIsReviewing(false)
   }
 
   const makePayment = async () => {
@@ -189,7 +217,6 @@ const Book = () => {
 
   useEffect(() => {
     const hash = router.query.bookInfo
-
     fetchBook(hash)
   }, [])
 
@@ -224,7 +251,7 @@ const Book = () => {
       </div>
     ) : (
       <div className="my-book__rate">
-        <Rate /* onChange={giveReview}  */ />
+        <Rate onChange={giveReview} />
       </div>
     )
 
@@ -246,7 +273,7 @@ const Book = () => {
           <div className="my-book__buy">
             <Tooltip title={notEnoughFunds && "Not Enough Funds"}>
               <Button
-                disabled={notEnoughFunds}
+                disabled={notEnoughFunds || !accountState?.account}
                 onClick={makePayment}
                 loading={isBuying}
                 size="large"
@@ -261,6 +288,7 @@ const Book = () => {
         {!isReaderTheAuthor &&
           !alreadyReviewed &&
           hasAccess &&
+          !hasReviewed &&
           renderReviewSection()}
       </div>
       {book.chapters?.length ? (

@@ -42,11 +42,13 @@ const Nav = () => {
         extra={
           <>
             <ul className={styles.headerList}>
-              <Link href="/explore">
-                <li>
-                  <Space className={styles.navChild}>Explore</Space>
-                </li>
-              </Link>
+              {accountState?.account?.address && (
+                <Link href="/explore">
+                  <li>
+                    <Space className={styles.navChild}>Explore</Space>
+                  </li>
+                </Link>
+              )}
 
               <li>
                 {accountState?.account?.address ? (

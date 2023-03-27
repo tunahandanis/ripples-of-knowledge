@@ -9,9 +9,9 @@ const Explore = () => {
 
   const fetchBooks = async () => {
     try {
-      const res = await fetch("/api/getBooks")
+      const booksRes = await fetch("/api/getBooks")
 
-      const json = await res.json()
+      const json = await booksRes.json()
       const bookURIs = json.map((book) => book.ipfsHash)
 
       const promises = bookURIs.map((uri) => {
@@ -24,7 +24,36 @@ const Explore = () => {
         return { ...book, ipfsHash: bookURIs[index] }
       })
 
-      setBooks(books)
+      const reviewsRes = await fetch("/api/getReviews")
+      const reviewJson = await reviewsRes.json()
+
+      const mappedReviews = reviewJson.map((review) => {
+        return {
+          book: review.bookId,
+          rating:
+            review.reviews.reduce((prev, next) => prev + next, 0) /
+            review.reviews.length,
+          reviewCount: review.reviews.length,
+        }
+      })
+
+      const booksWithReviews = books.map((book) => {
+        const review = mappedReviews.find(
+          (review) => review.book === book.bookId
+        )
+
+        if (review) {
+          return {
+            ...book,
+            rating: review.rating,
+            reviewCount: review.reviewCount,
+          }
+        }
+
+        return book
+      })
+
+      setBooks(booksWithReviews)
     } catch (error) {
       console.error(error)
     }
