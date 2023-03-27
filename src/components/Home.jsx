@@ -11,7 +11,7 @@ const Home = () => {
     <>
       <div className="hero">
         <img
-          src="/assets/hero-image.jpeg"
+          src="/assets/hero-image.jpg"
           alt="hero image"
           className="hero__image"
           loading="lazy"
