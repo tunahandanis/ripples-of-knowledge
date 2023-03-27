@@ -77,7 +77,7 @@ const User = () => {
         </a>
       )
       notification.open({
-        message: `Your minted a new book as NFT!`,
+        message: `You minted a new book as NFT!`,
         description: "Click to view on explorer:",
         btn,
         placement: "bottomRight",
