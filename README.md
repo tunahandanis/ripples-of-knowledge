@@ -26,6 +26,8 @@ Check out [http://localhost:3000](http://localhost:3000) on the browser and you'
 
 ## Inspiration
 
+Web novel is a fast-growing industry, but it has a few problems which I think can be solved with blockchain technology.
+
 Companies such as Webnovel and Royal Road provide an environment for authors to share their work and gain some support while providing its users access to many good web novels. However, they are highly centralized; and in many cases, provide unfair circumstances for its authors. Plagiarism is also abundant in the industry due to the nature of the work. So I developed the "Ripples of Knowledge" to address these issues, using the power of the XRP Ledger.
 
 ## What it does
@@ -40,7 +42,7 @@ Ripples of Knowledge is a decentralized platform that lets authors publish their
 
 <img src="./public/assets/reader-diagram.png" width="750">
 
-The web application is built with **Next.js**, backend with **Node**, Web3 development with **xrpl.js**, IPFS pinning with Pinata, and version control with **Git**.
+The web application is built with **Next.js**, backend with **Node**, Web3 development with **xrpl.js**, IPFS pinning with **Pinata**, and version control with **Git**.
 
 ## Challenges we ran into
 
@@ -48,7 +50,7 @@ As a developer very new to the blockchain development, I struggled a lot with al
 
 ## Accomplishments that we're proud of
 
-I'm very inexperienced in the blockchain development, it was a tough process; but I managed to build most of what I wanted, for which I'm content.
+Considering that I'm still a newbie in the blockchain development, I'm proud of the fact that I was able to create most of what I had in mind.
 
 ## What we learned
 
