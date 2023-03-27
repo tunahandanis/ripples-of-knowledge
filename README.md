@@ -40,8 +40,6 @@ Ripples of Knowledge is a decentralized platform that lets authors publish their
 
 <img src="./public/assets/reader-diagram.png" width="750">
 
----
-
 The web application is built with **Next.js**, backend with **Node**, Web3 development with **xrpl.js**, IPFS pinning with Pinata, and version control with **Git**.
 
 ## Challenges we ran into
