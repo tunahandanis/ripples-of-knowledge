@@ -5,16 +5,16 @@ dbConnect()
 
 export default async function handler(req, res) {
   const bookId = req.body.bookId
-  const newChapter = req.body.newChapter
+  const newHash = req.body.newHash
 
-  const filter = { _id: bookId }
+  const filter = { bookId: bookId }
 
   const options = { upsert: true, new: true, setDefaultsOnInsert: true }
 
   await Book.findOneAndUpdate(
     filter,
     {
-      $push: { chapters: newChapter },
+      ipfsHash: newHash,
     },
     options
   ).then((response) => {

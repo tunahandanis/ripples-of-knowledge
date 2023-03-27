@@ -9,6 +9,7 @@ import { getBooksTableColumns } from "@/utils/helpers"
 
 import { uploadJSONToIPFS, getNFTMetadata } from "@/utils/pinata"
 import { CheckOutlined } from "@ant-design/icons"
+import axios from "axios"
 
 // eslint-disable-next-line no-undef
 const xrpl = require("xrpl")
@@ -33,6 +34,8 @@ const User = () => {
   const mintBookNft = async () => {
     setIsMinting(true)
 
+    const bookId = new Date().valueOf()
+
     const newBook = {
       bookName: bookNameInput,
       authorWalletAddress: accountState?.account?.address,
@@ -40,7 +43,10 @@ const User = () => {
       chapters: [],
       reviewers: [],
       rating: 0,
+      bookId,
     }
+
+    console.log(newBook)
 
     try {
       const pinataResponse = await uploadJSONToIPFS(newBook)
@@ -58,6 +64,8 @@ const User = () => {
       const tx = await accountState.client.submitAndWait(mintTransactionBlob, {
         wallet: accountState?.wallet,
       })
+
+      await insertBook(bookId, pinataResponse.ipfsHash)
 
       const btn = (
         <a
@@ -86,6 +94,19 @@ const User = () => {
       console.error(error)
     }
     handleMintDone()
+  }
+
+  const insertBook = async (bookId, ipfsHash) => {
+    const newBook = {
+      bookId,
+      ipfsHash,
+    }
+
+    try {
+      axios.post("/api/createBook", newBook)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const handleMintDone = () => {
@@ -119,7 +140,7 @@ const User = () => {
     if (accountState?.account?.nfts) {
       fetchBooks()
     }
-  }, [accountState?.account.nfts])
+  }, [accountState?.account?.nfts])
 
   if (!books) {
     return (

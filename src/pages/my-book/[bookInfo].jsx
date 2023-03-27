@@ -8,6 +8,7 @@ import { Button, Collapse, Input, Modal, notification, Spin } from "antd"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { CheckOutlined } from "@ant-design/icons"
+import axios from "axios"
 
 // eslint-disable-next-line no-undef
 const xrpl = require("xrpl")
@@ -32,7 +33,7 @@ const MyBook = () => {
   }
 
   useEffect(() => {
-    const bookName = router.query.bookInfo.split(",")[1]
+    const bookName = router.query.bookInfo?.split(",")[1]
 
     fetchBook(bookName)
   }, [accountState?.account?.nfts])
@@ -95,6 +96,8 @@ const MyBook = () => {
       chapters: [...book.chapters, newChapter],
     }
 
+    console.log(book)
+
     if (!updatedBookData) {
       return
     }
@@ -119,6 +122,11 @@ const MyBook = () => {
       await accountState.wallet?.sign(mintTransactionBlob)
       const tx = await accountState.client.submitAndWait(mintTransactionBlob, {
         wallet: accountState?.wallet,
+      })
+
+      await updateHashInDatabase({
+        bookId: book.bookId,
+        newHash: pinataResponse.ipfsHash,
       })
 
       const btn = (
@@ -152,6 +160,19 @@ const MyBook = () => {
     setChapterNameInput("")
     setContentInput("")
     setIsNewChapterModalOpen(false)
+  }
+
+  const updateHashInDatabase = async ({ bookId, newHash }) => {
+    const payload = {
+      bookId,
+      newHash,
+    }
+
+    try {
+      axios.post("/api/updateHash", payload)
+    } catch (e) {
+      console.error(e.response.data)
+    }
   }
 
   if (!book) {
