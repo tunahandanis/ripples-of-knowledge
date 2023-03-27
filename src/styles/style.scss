@@ -108,6 +108,9 @@ PROFILE
   &__new-button {
     display: inline;
     margin-bottom: 2em;
+    background-color: $secondary-color !important;
+    color: #000 !important;
+    border: none;
   }
 }
 
@@ -240,6 +243,27 @@ ANT DESIGN
   }
 }
 
+.ant-btn-default {
+  &:hover,
+  &:active {
+    border-color: darken($secondary-color, 10%) !important;
+    color: darken($secondary-color, 10%) !important;
+  }
+}
+
+.ant-btn-primary {
+  color: $primary-color !important;
+  background-color: $secondary-color !important;
+  border: 1px solid $secondary-color !important;
+}
+
+.ant-input {
+  &:focus,
+  &:hover {
+    border-color: $secondary-color !important;
+  }
+}
+
 .ant-spin-dot-item {
   background-color: #fff !important;
   width: 18px !important;
@@ -354,12 +378,12 @@ HERO
 
   &__button-explore {
     margin-right: 1em;
-    background-color: $primary-color !important;
+    background-color: $secondary-color !important;
+    color: #000 !important;
   }
 
   &__button-write {
-    color: #000 !important;
-    background-color: #fff !important;
+    background-color: lighten($primary-color, 20%) !important;
   }
 
   &__button-disabled {
@@ -370,6 +394,8 @@ HERO
     &:hover {
       background-color: transparent !important;
       color: lighten(#000, 50%) !important;
+      transform: none;
+      cursor: no-drop;
     }
   }
 }

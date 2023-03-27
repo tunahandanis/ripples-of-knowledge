@@ -39,7 +39,6 @@ const Nav = () => {
             Ripples of Knowledge
           </Link>
         }
-        subTitle="Read, write and support thrilling books"
         extra={
           <>
             <ul className={styles.headerList}>
@@ -60,7 +59,7 @@ const Nav = () => {
                         <Link
                           href={`/my-books/${accountState.account.address}`}
                         >
-                          <Menu.Item>My NFTs</Menu.Item>
+                          <Menu.Item>My Books</Menu.Item>
                         </Link>
                       </Menu>
                     }
