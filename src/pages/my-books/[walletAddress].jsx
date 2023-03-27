@@ -46,8 +46,6 @@ const User = () => {
       bookId,
     }
 
-    console.log(newBook)
-
     try {
       const pinataResponse = await uploadJSONToIPFS(newBook)
 

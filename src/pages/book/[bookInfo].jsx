@@ -1,4 +1,8 @@
-import { useAccountContext } from "@/context/accountContext"
+import {
+  updateBalance,
+  updateNFTs,
+  useAccountContext,
+} from "@/context/accountContext"
 import { Button, Collapse, notification, Spin, Tooltip, Rate } from "antd"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
@@ -12,264 +16,198 @@ import {
 import { getNFTMetadata, uploadJSONToIPFS } from "@/utils/pinata"
 import BookNFT from "../../../artifacts/contracts/BookNFT.sol/BookNFT.json"
 
+// eslint-disable-next-line no-undef
+const xrpl = require("xrpl")
+
 const Book = () => {
   const router = useRouter()
   const [book, setBook] = useState()
-  const [authorBooks, setAuthorBooks] = useState()
-  const [authorBookURIs, setAuthorBookURIs] = useState()
   const [hasAccess, setHasAccess] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
   const [isReviewing, setIsReviewing] = useState(false)
 
-  const { accountState, checkIfWalletIsConnected, accountDispatch } =
-    useAccountContext()
+  const { accountState, accountDispatch } = useAccountContext()
 
-  const buyAccess = async () => {
-    const params = {
-      nonce: "0x00",
-      to: book.authorWalletAddress,
-      from: accountState.account.address,
-      value: ethers.utils.parseUnits(book.premiumPrice, 18).toString(),
-      gasPrice: ethers.utils.parseUnits("2.0", "gwei").toHexString(),
+  const getAccessedBooksByAddress = async () => {
+    const nftURIs = accountState?.account?.nfts?.map((nft) =>
+      xrpl.convertHexToString(nft.URI)
+    )
+
+    if (!nftURIs) {
+      return
     }
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
+    try {
+      const promises = nftURIs.map((uri) => {
+        const promise = getNFTMetadata(uri)
+        return promise
+      })
 
+      const nfts = await Promise.all(promises)
+      const accessNft = nfts.find((nft) => nft.isAccessNft)
+
+      console.log(nfts)
+
+      setHasAccess(accessNft.accessData.includes(book.bookId))
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const makePayment = async () => {
     setIsBuying(true)
 
     try {
-      const res = await signer.sendTransaction(params)
+      const paymentBlob = await accountState.client?.autofill({
+        TransactionType: "Payment",
+        Account: accountState?.account?.address,
+        Amount: xrpl.xrpToDrops(book.premiumPrice.toString()),
+        Destination: book.authorWalletAddress,
+      })
+
+      const signed = await accountState.wallet?.sign(paymentBlob)
+      const tx = await accountState.client?.submitAndWait(signed.tx_blob)
 
       const btn = (
         <a
-          href={"https://arctic.epirus.io/transactions/" + res.hash}
+          href={"https://blockexplorer.one/xrp/testnet/tx/" + tx.result.hash}
           target="_blank"
           rel="noreferrer"
         >
           <span style={{ color: "#40a9ff", cursor: "pointer" }}>
-            {res.hash.slice(0, 30) + "..."}
+            {tx.result.hash.slice(0, 30) + "..."}
           </span>
         </a>
       )
       notification.open({
-        message: `Payment got through`,
-        description: "Click to view on Epirus",
+        message: `Payment got through!`,
+        description: "Click to view on explorer:",
         btn,
         placement: "bottomRight",
 
         duration: 5,
         icon: <CheckOutlined style={{ color: "#108ee9" }} />,
       })
+
       await mintAccessNFT()
-
-      await getAccessedBooksByAddress()
     } catch (error) {
       console.error(error)
-      setIsBuying(false)
-    }
-  }
-
-  const getAccessedBooksByAddress = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-
-    const contract = new ethers.Contract(
-      bookAccessNftContractAddress,
-      BookAccessNFT.abi,
-      provider
-    )
-
-    try {
-      const identifiers = await contract.getAccessedBooks(
-        accountState.account.address
-      )
-
-      const bookIdentifier = `${
-        book.authorWalletAddress
-      }&${book.bookName.trim()}`
-
-      setHasAccess(identifiers.includes(bookIdentifier))
-      setIsBuying(false)
-    } catch (error) {
-      console.error(error)
-      setIsBuying(false)
     }
   }
 
   const mintAccessNFT = async () => {
-    if (typeof window.ethereum !== "undefined") {
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const signer = provider.getSigner()
+    const nftURIs = accountState?.account?.nfts.map((nft) =>
+      xrpl.convertHexToString(nft.URI)
+    )
 
-      const contract = new ethers.Contract(
-        bookAccessNftContractAddress,
-        BookAccessNFT.abi,
-        signer
-      )
+    let burnTransactionBlob
+    let accessNft
 
-      const bookIdentifier = `${
-        book.authorWalletAddress
-      }&${book.bookName.trim()}`
+    if (nftURIs.length) {
+      const promises = []
 
-      const transaction = await contract.mintAccessNFT(
-        accountState.account.address,
-        bookIdentifier
-      )
-
-      try {
-        const res = await transaction.wait()
-
-        const btn = (
-          <a
-            href={
-              "https://arctic.epirus.io/transactions/" + res.transactionHash
-            }
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span style={{ color: "#40a9ff", cursor: "pointer" }}>
-              {res.transactionHash.slice(0, 30) + "..."}
-            </span>
-          </a>
-        )
-        notification.open({
-          message: `You just minted the access NFT!`,
-          description: "Click to view transaction on Epirus",
-          btn,
-          placement: "bottomRight",
-
-          duration: 5,
-          icon: <CheckOutlined style={{ color: "#108ee9" }} />,
-        })
-
-        getAccessedBooksByAddress()
-      } catch (error) {
-        console.error(error)
-        setIsBuying(false)
+      for (let uri of nftURIs) {
+        promises.push(getNFTMetadata(uri))
       }
+
+      const nfts = await Promise.all(promises)
+      accessNft = nfts.find((nft) => nft.isAccessNft)
+
+      const nftIndex = nfts.findIndex((nft) => nft?.isAccessNft)
+      const tokenId = accountState?.account?.nfts[nftIndex].NFTokenID
+
+      burnTransactionBlob = {
+        TransactionType: "NFTokenBurn",
+        Account: accountState?.account?.address,
+        NFTokenID: tokenId,
+      }
+    }
+
+    try {
+      let updatedBookData
+
+      if (accessNft) {
+        updatedBookData = {
+          ...accessNft,
+          accessData: [...accessNft.accessData, book.bookId],
+        }
+      } else {
+        updatedBookData = { accessData: [book.bookId], isAccessNft: true }
+      }
+
+      if (accessNft) {
+        await accountState.wallet?.sign(burnTransactionBlob)
+
+        await accountState.client.submitAndWait(burnTransactionBlob, {
+          wallet: accountState?.wallet,
+        })
+      }
+
+      const pinataResponse = await uploadJSONToIPFS(updatedBookData)
+      const mintTransactionBlob = {
+        TransactionType: "NFTokenMint",
+        Account: accountState.wallet?.classicAddress,
+        URI: xrpl.convertStringToHex(pinataResponse.ipfsHash),
+        Flags: 8,
+        TransferFee: 0,
+        NFTokenTaxon: 0,
+      }
+
+      await accountState.wallet?.sign(mintTransactionBlob)
+      const tx = await accountState.client.submitAndWait(mintTransactionBlob, {
+        wallet: accountState?.wallet,
+      })
+
+      const btn = (
+        <a
+          href={"https://blockexplorer.one/xrp/testnet/tx/" + tx.result.hash}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span style={{ color: "#40a9ff", cursor: "pointer" }}>
+            {tx.result.hash.slice(0, 30) + "..."}
+          </span>
+        </a>
+      )
+      notification.open({
+        message: `You just minted the access NFT!`,
+        description: "Click to view on explorer:",
+        btn,
+        placement: "bottomRight",
+
+        duration: 5,
+        icon: <CheckOutlined style={{ color: "#108ee9" }} />,
+      })
+
+      await updateNFTs(accountDispatch, accountState.account.address)
+      await updateBalance(accountDispatch, accountState.account.address)
+      setIsBuying(false)
+    } catch (e) {
+      console.error(e)
     }
   }
 
   useEffect(() => {
-    const bookInfo = router.query.bookInfo
-    const splitInfo = bookInfo.split(",")
-    const author = splitInfo[0]
-    const bookName = splitInfo[1]
+    const hash = router.query.bookInfo
 
-    fetchBook({ author, bookName })
+    fetchBook(hash)
   }, [])
 
-  const fetchBook = async ({ author, bookName }) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-
-    const contract = new ethers.Contract(
-      bookNftContractAddress,
-      BookNFT.abi,
-      provider
-    )
-
+  const fetchBook = async (hash) => {
     try {
-      const bookURIs = await contract.getAuthorBookURIs(author)
+      const book = await getNFTMetadata(hash)
 
-      const promises = []
-
-      for (let uri of bookURIs) {
-        promises.push(getNFTMetadata(uri))
-      }
-
-      const books = await Promise.all(promises)
-      const book = books.find((book) => book.bookName === bookName)
-
-      setAuthorBookURIs(bookURIs)
-      setAuthorBooks(books)
       setBook(book)
     } catch (error) {
       console.error(error)
     }
   }
 
-  const giveReview = async (rating) => {
-    checkIfWalletIsConnected(accountDispatch)
-    setIsReviewing(true)
-
-    const bookInfo = router.query.bookInfo
-    const splitInfo = bookInfo.split(",")
-    const author = splitInfo[0]
-    const bookName = splitInfo[1]
-
-    const bookIndex = authorBooks.findIndex(
-      (book) => book.bookName === bookName
-    )
-    const oldBookURI = authorBookURIs[bookIndex]
-
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
-
-    const contract = new ethers.Contract(
-      bookNftContractAddress,
-      BookNFT.abi,
-      signer
-    )
-
-    const newNumberOfReviewers = book.reviewers.length + 1
-
-    const updatedBookData = {
-      ...book,
-      rating: (book.rating + rating) / newNumberOfReviewers,
-      reviewers: book.reviewers.includes(accountState?.account?.address)
-        ? book.reviewers
-        : [...book.reviewers, accountState.account.address],
-    }
-
-    if (!updatedBookData) {
-      return
-    }
-
-    try {
-      const pinataResponse = await uploadJSONToIPFS(updatedBookData)
-      const transaction = await contract.updateBookURI(
-        author,
-        oldBookURI,
-        pinataResponse.ipfsHash
-      )
-      const res = await transaction.wait()
-
-      const btn = (
-        <a
-          href={"https://arctic.epirus.io/transactions/" + res.transactionHash}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <span style={{ color: "#40a9ff", cursor: "pointer" }}>
-            {res.transactionHash.slice(0, 30) + "..."}
-          </span>
-        </a>
-      )
-      notification.open({
-        message: `You added a new review!`,
-        description: "Click to view transaction on Epirus",
-        btn,
-        placement: "bottomRight",
-
-        duration: 5,
-        icon: <CheckOutlined style={{ color: "#108ee9" }} />,
-      })
-
-      setTimeout(() => {
-        fetchBook({ author, bookName })
-      }, 1000)
-    } catch (e) {
-      console.error(e)
-    }
-
-    setIsReviewing(false)
-  }
-
   useEffect(() => {
     if (book) {
       getAccessedBooksByAddress()
     }
-  }, [book])
+  }, [book, accountState?.account?.nfts])
 
   if (!book) {
     return (
@@ -286,7 +224,7 @@ const Book = () => {
       </div>
     ) : (
       <div className="my-book__rate">
-        <Rate onChange={giveReview} />
+        <Rate /* onChange={giveReview}  */ />
       </div>
     )
 
@@ -309,7 +247,7 @@ const Book = () => {
             <Tooltip title={notEnoughFunds && "Not Enough Funds"}>
               <Button
                 disabled={notEnoughFunds}
-                onClick={buyAccess}
+                onClick={makePayment}
                 loading={isBuying}
                 size="large"
                 type="primary"

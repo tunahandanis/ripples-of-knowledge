@@ -73,7 +73,9 @@ export const getBooksTableColumns = (isAuthor) => {
           href={{
             pathname: `/${isAuthor ? "my-book" : "book"}/[bookInfo]`,
             query: {
-              bookInfo: `${row?.authorWalletAddress},${row?.bookName}`,
+              bookInfo: isAuthor
+                ? `${row?.authorWalletAddress},${row?.bookName}`
+                : row?.ipfsHash,
             },
           }}
         >
@@ -86,7 +88,3 @@ export const getBooksTableColumns = (isAuthor) => {
   const newColumns = { ...columns }
   return newColumns
 }
-
-/* href={`/${isAuthor ? "my-books" : "book"}/${
-  row?.authorWalletAddress
-}-${row?.bookName}`} */
